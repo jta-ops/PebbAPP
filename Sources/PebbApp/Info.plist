@@ -8,6 +8,8 @@
     <string>Pebb</string>
     <key>CFBundleIdentifier</key>
     <string>dev.pebb.app</string>
+    <key>CFBundleExecutable</key>
+    <string>PebbApp</string>
     <key>CFBundleVersion</key>
     <string>1</string>
     <key>CFBundleShortVersionString</key>
