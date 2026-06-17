@@ -1,0 +1,4 @@
+version: 1
+bundleID: dev.pebb.app
+product: PebbApp
+infoPath: Sources/PebbApp/Info.plist
