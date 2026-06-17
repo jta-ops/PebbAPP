@@ -7,8 +7,18 @@ struct ChatMessage: Identifiable, Equatable {
     let role: String
     let content: String
     let imageURL: String?
+    let timestamp: String
 
     var isUser: Bool { role == "user" }
+
+    init(role: String, content: String, imageURL: String? = nil) {
+        self.role = role
+        self.content = content
+        self.imageURL = imageURL
+        let f = DateFormatter()
+        f.dateFormat = "h:mm a"
+        self.timestamp = f.string(from: Date())
+    }
 }
 
 // MARK: - Account Info
@@ -151,38 +161,41 @@ class PebbAPI: ObservableObject {
             }
         }
         if messages.isEmpty {
-            messages = [ChatMessage(role: "assistant", content: "hey! what's on your mind? 💜", imageURL: nil)]
+            messages = [ChatMessage(role: "assistant", content: "hey! what's on your mind? 💜")]
         }
     }
 
     @MainActor
     func sendMessage(_ text: String, imageData: Data? = nil) async throws {
-        let userMsg = ChatMessage(role: "user", content: text, imageURL: nil)
+        let userMsg = ChatMessage(role: "user", content: text)
         messages.append(userMsg)
         isTyping = true
 
-        var imageUrl: String? = nil
-        if let imgData = imageData {
-            imageUrl = try await uploadImage(imgData)
-        }
-
-        let url = URL(string: "\(baseURL)/webchat/api/chat")!
-        var req = URLRequest(url: url)
-        req.httpMethod = "POST"
-        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        req.httpBody = try JSONSerialization.data(withJSONObject: [
-            "token": token,
-            "message": text,
-            "image": imageUrl ?? "",
-        ])
-        let (data, resp) = try await URLSession.shared.data(for: req)
-        if (resp as? HTTPURLResponse)?.statusCode == 401 { signOut(); return }
-        let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
-        isTyping = false
-        if let replies = json["messages"] as? [String] {
-            for reply in replies {
-                messages.append(ChatMessage(role: "assistant", content: reply, imageURL: nil))
+        do {
+            var imageUrl: String? = nil
+            if let imgData = imageData {
+                imageUrl = try await uploadImage(imgData)
             }
+
+            let url = URL(string: "\(baseURL)/webchat/api/chat")!
+            var req = URLRequest(url: url)
+            req.httpMethod = "POST"
+            req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            var body: [String: Any] = ["token": token, "message": text]
+            if let imageUrl { body["image"] = imageUrl }
+            req.httpBody = try JSONSerialization.data(withJSONObject: body)
+            let (data, resp) = try await URLSession.shared.data(for: req)
+            isTyping = false
+            if (resp as? HTTPURLResponse)?.statusCode == 401 { signOut(); return }
+            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
+            if let replies = json["messages"] as? [String] {
+                for reply in replies {
+                    messages.append(ChatMessage(role: "assistant", content: reply))
+                }
+            }
+        } catch {
+            isTyping = false
+            messages.append(ChatMessage(role: "assistant", content: "couldn't reach pebb — check your connection and try again"))
         }
     }
 

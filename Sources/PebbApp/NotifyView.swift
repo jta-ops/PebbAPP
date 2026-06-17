@@ -1,7 +1,9 @@
 import SwiftUI
 
 struct NotifyView: View {
-    @State private var isLoading = false
+    @Environment(\.dismiss) private var dismiss
+    @State private var swing = false
+    @State private var isRequesting = false
 
     var body: some View {
         ZStack {
@@ -17,18 +19,18 @@ struct NotifyView: View {
 
                 Text("🔔")
                     .font(.system(size: 72))
-                    .rotationEffect(.degrees(isLoading ? -8 : 8))
-                    .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: isLoading)
-                    .onAppear { isLoading = true }
+                    .rotationEffect(.degrees(swing ? -10 : 10))
+                    .animation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true), value: swing)
+                    .onAppear { swing = true }
 
                 Text("Stay in the loop")
-                    .font(.custom("Fraunces", size: 28).weight(.bold))
-                    .foregroundColor(Color(hex: "EDEBF7"))
+                    .font(.system(size: 26, weight: .black, design: .rounded))
+                    .foregroundStyle(Color(hex: "EDEBF7"))
                     .padding(.top, 28)
 
                 Text("Get notified when Pebb messages you — even when the app is closed.")
                     .font(.system(size: 14))
-                    .foregroundColor(Color(hex: "6E6A8A"))
+                    .foregroundStyle(Color(hex: "6E6A8A"))
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)
                     .padding(.top, 10)
@@ -39,24 +41,22 @@ struct NotifyView: View {
                 VStack(spacing: 0) {
                     Button(action: enableNotifs) {
                         HStack(spacing: 8) {
-                            if isLoading { ProgressView().tint(.white) }
-                            Text(isLoading ? "Enabling…" : "Enable notifications")
+                            if isRequesting { ProgressView().tint(.white) }
+                            Text(isRequesting ? "Enabling…" : "Enable notifications")
                                 .font(.system(size: 15, weight: .semibold))
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
                         .background(Color(hex: "7C6FCD"))
                         .clipShape(Capsule())
-                        .foregroundColor(.white)
+                        .foregroundStyle(Color.white)
                     }
-                    .disabled(isLoading)
+                    .disabled(isRequesting)
 
-                    Button("Skip for now") {
-                        withAnimation { PebbAPI.shared.isLoggedIn = true }
-                    }
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(Color(hex: "6E6A8A"))
-                    .padding(.top, 12)
+                    Button("Skip for now") { dismiss() }
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(Color(hex: "6E6A8A"))
+                        .padding(.top, 14)
                 }
                 .padding(.horizontal, 40)
 
@@ -66,14 +66,13 @@ struct NotifyView: View {
     }
 
     private func enableNotifs() {
-        isLoading = true
+        isRequesting = true
         Task {
             try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound])
             await MainActor.run {
                 UIApplication.shared.registerForRemoteNotifications()
-                withAnimation { PebbAPI.shared.isLoggedIn = true }
+                dismiss()
             }
-            isLoading = false
         }
     }
 }

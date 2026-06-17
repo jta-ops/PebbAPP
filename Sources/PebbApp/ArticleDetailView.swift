@@ -5,6 +5,8 @@ struct ArticleDetailView: View {
     let article: NewsArticle
     @Environment(\.dismiss) private var dismiss
 
+    var catColor: Color { categoryColor(article.category) }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
@@ -16,8 +18,9 @@ struct ArticleDetailView: View {
                         .padding(.horizontal, 14)
                 } else if let text = article.content_text {
                     Text(text)
+                        .fixedSize(horizontal: false, vertical: true)
                         .font(.system(size: 15))
-                        .foregroundColor(Color(hex: "C4C0E0"))
+                        .foregroundStyle(Color(hex: "C4C0E0"))
                         .lineSpacing(6)
                         .padding(.horizontal, 14)
                         .padding(.top, 16)
@@ -41,27 +44,37 @@ struct ArticleDetailView: View {
                 case .empty:
                     Rectangle()
                         .fill(Color(hex: "2D1515"))
-                        .frame(height: 240)
+                        .frame(height: 260)
                         .overlay(ProgressView().tint(Color(hex: "7C6FCD")))
                 case .success(let image):
                     image
                         .resizable()
                         .scaledToFill()
-                        .frame(height: 240)
+                        .frame(height: 260)
                         .clipped()
+                        .overlay(
+                            LinearGradient(
+                                colors: [
+                                    .clear,
+                                    .clear,
+                                    Color(hex: "0B0A12").opacity(0.5),
+                                    Color(hex: "0B0A12")
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
                 case .failure:
                     Rectangle()
                         .fill(Color(hex: "2D1515"))
-                        .frame(height: 240)
+                        .frame(height: 260)
                         .overlay(
                             Image(systemName: "photo")
                                 .font(.system(size: 48))
-                                .foregroundColor(Color(hex: "6E6A8A"))
+                                .foregroundStyle(Color(hex: "6E6A8A"))
                         )
                 @unknown default:
-                    Rectangle()
-                        .fill(Color(hex: "2D1515"))
-                        .frame(height: 240)
+                    Rectangle().fill(Color(hex: "2D1515")).frame(height: 260)
                 }
             }
         }
@@ -72,29 +85,36 @@ struct ArticleDetailView: View {
             HStack(spacing: 6) {
                 Text(article.category)
                     .font(.system(size: 11, weight: .bold))
-                    .foregroundColor(Color(hex: "F87171"))
+                    .foregroundStyle(catColor)
                     .textCase(.uppercase)
                 Text("·")
-                    .foregroundColor(Color(hex: "6E6A8A"))
+                    .foregroundStyle(Color(hex: "6E6A8A"))
                 Text(article.source)
                     .font(.system(size: 11))
-                    .foregroundColor(Color(hex: "6E6A8A"))
+                    .foregroundStyle(Color(hex: "6E6A8A"))
+                Spacer()
+                Text(readingTime(for: article))
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color(hex: "6E6A8A"))
             }
             .padding(.top, 16)
 
             Text(article.title)
+                .fixedSize(horizontal: false, vertical: true)
                 .font(.system(size: 22, weight: .bold))
-                .foregroundColor(Color(hex: "EDEBF7"))
+                .foregroundStyle(Color(hex: "EDEBF7"))
                 .lineSpacing(2)
+                .tracking(-0.3)
 
             Text(article.summary)
+                .fixedSize(horizontal: false, vertical: true)
                 .font(.system(size: 14))
-                .foregroundColor(Color(hex: "A09CBA"))
+                .foregroundStyle(Color(hex: "A09CBA"))
                 .lineSpacing(4)
 
             Text(article.published_at)
                 .font(.system(size: 11))
-                .foregroundColor(Color(hex: "6E6A8A"))
+                .foregroundStyle(Color(hex: "6E6A8A"))
         }
         .padding(.horizontal, 14)
         .padding(.bottom, 16)
@@ -102,20 +122,19 @@ struct ArticleDetailView: View {
 
     private func sourcesSection(_ sources: [String]) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Divider()
-                .overlay(Color(hex: "FFFFFF").opacity(0.07))
+            Divider().overlay(Color(hex: "FFFFFF").opacity(0.07))
             Text("Sources")
                 .font(.system(size: 11, weight: .bold))
-                .foregroundColor(Color(hex: "6E6A8A"))
+                .foregroundStyle(Color(hex: "6E6A8A"))
                 .textCase(.uppercase)
             ForEach(sources, id: \.self) { source in
                 HStack(spacing: 6) {
                     Text("→")
                         .font(.system(size: 11))
-                        .foregroundColor(Color(hex: "F87171"))
+                        .foregroundStyle(catColor)
                     Text(source)
                         .font(.system(size: 12))
-                        .foregroundColor(Color(hex: "A09CBA"))
+                        .foregroundStyle(Color(hex: "A09CBA"))
                 }
             }
         }
@@ -147,28 +166,11 @@ struct ArticleWebView: UIViewRepresentable {
         <head>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
-        body {
-            font-family: -apple-system, system-ui, sans-serif;
-            font-size: 15px;
-            line-height: 1.7;
-            color: #C4C0E0;
-            background: transparent;
-            margin: 0;
-            padding: 0;
-        }
-        p { margin-bottom: 1em; }
-        .pull-quote {
-            font-size: 18px;
-            font-weight: 700;
-            color: #F87171;
-            border-top: 2px solid #F87171;
-            border-bottom: 2px solid #F87171;
-            padding: 12px 0;
-            margin: 20px 0;
-            line-height: 1.4;
-        }
-        strong { color: #EDEBF7; }
-        a { color: #7C6FCD; }
+        body { font-family:-apple-system,system-ui,sans-serif; font-size:15px; line-height:1.7; color:#C4C0E0; background:transparent; margin:0; padding:0; }
+        p { margin-bottom:1em; }
+        .pull-quote { font-size:18px; font-weight:700; color:#F87171; border-top:2px solid #F87171; border-bottom:2px solid #F87171; padding:12px 0; margin:20px 0; line-height:1.4; }
+        strong { color:#EDEBF7; }
+        a { color:#7C6FCD; }
         </style>
         </head>
         <body>\(html)</body>

@@ -1,4 +1,5 @@
 import SwiftUI
+import UserNotifications
 
 struct ContentView: View {
     @StateObject private var api = PebbAPI.shared
@@ -9,25 +10,22 @@ struct ContentView: View {
             if !api.isLoggedIn {
                 OnboardingView()
                     .transition(.opacity)
-            } else if showNotify {
-                NotifyView()
-                    .transition(.opacity)
             } else {
                 mainTabView
                     .transition(.opacity)
-                    .sheet(isPresented: $showNotify) {
-                        NotifyView()
-                    }
             }
         }
         .animation(.easeInOut(duration: 0.22), value: api.isLoggedIn)
-        .animation(.easeInOut(duration: 0.22), value: showNotify)
+        .sheet(isPresented: $showNotify) {
+            NotifyView()
+        }
         .onChange(of: api.isLoggedIn) { _, loggedIn in
             if loggedIn {
-                let center = UNUserNotificationCenter.current()
-                center.getNotificationSettings { settings in
-                    if settings.authorizationStatus != .authorized {
-                        showNotify = true
+                UNUserNotificationCenter.current().getNotificationSettings { settings in
+                    DispatchQueue.main.async {
+                        if settings.authorizationStatus != .authorized {
+                            showNotify = true
+                        }
                     }
                 }
             }
