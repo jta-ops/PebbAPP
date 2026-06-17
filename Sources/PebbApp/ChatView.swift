@@ -702,8 +702,8 @@ struct MessageBubble: View {
                     withAnimation { showTime.toggle() }
                 } label: {
                     Text(message.text)
-                        .font(Font.system(size: 15.5))
                         .foregroundColor(isUser ? Color(hex: "F0EDFF") : Color(hex: "E5E5F0"))
+                        .font(Font.system(size: 15.5))
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
                         .background(
