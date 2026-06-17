@@ -14,9 +14,16 @@ jobs:
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode.app
 
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
       - name: Build app (unsigned)
         run: |
           xcodebuild \
+            -project PebbApp.xcodeproj \
             -scheme PebbApp \
             -destination 'generic/platform=iOS' \
             -configuration Release \
@@ -28,17 +35,12 @@ jobs:
 
       - name: Package IPA
         run: |
-          set -e
-          BINARY=$(find DerivedData/Build/Products -type f -name "PebbApp" -not -path "*.dSYM*" -maxdepth 4 | head -1)
-          echo "Binary: $BINARY"
-          BUNDLE=$(find DerivedData/Build/Products -name "*.bundle" -maxdepth 4 | head -1)
-          echo "Bundle: $BUNDLE"
-          mkdir -p Payload/PebbApp.app
-          cp "$BINARY" Payload/PebbApp.app/PebbApp
-          cp Sources/PebbApp/Info.plist Payload/PebbApp.app/Info.plist
-          if [ -n "$BUNDLE" ]; then
-            cp -r "$BUNDLE" Payload/PebbApp.app/
-          fi
+          echo "=== Searching for .app ==="
+          find DerivedData/Build/Products -name "*.app" 2>/dev/null || true
+          APP=$(find DerivedData/Build/Products -name "*.app" -not -path "*iphonesimulator*" | head -1)
+          echo "Using: $APP"
+          mkdir -p Payload
+          cp -r "$APP" Payload/
           zip -r Pebb.ipa Payload
           ls -lh Pebb.ipa
 
