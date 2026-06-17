@@ -35,10 +35,10 @@ jobs:
 
       - name: Package IPA
         run: |
-          echo "=== Searching for .app ==="
-          find DerivedData/Build/Products -name "*.app" 2>/dev/null || true
           APP=$(find DerivedData/Build/Products -name "*.app" -not -path "*iphonesimulator*" | head -1)
           echo "Using: $APP"
+          # Ad-hoc sign so sideloading tools (Sideloadly, AltStore) recognise the IPA
+          codesign --force --deep --sign - "$APP"
           mkdir -p Payload
           cp -r "$APP" Payload/
           zip -r Pebb.ipa Payload
