@@ -4,11 +4,8 @@ import PackageDescription
 let package = Package(
     name: "PebbApp",
     platforms: [.iOS(.v17)],
-    products: [
-        .library(name: "PebbApp", targets: ["PebbApp"])
-    ],
     targets: [
-        .target(
+        .executableTarget(
             name: "PebbApp",
             path: "Sources/PebbApp",
             resources: [
