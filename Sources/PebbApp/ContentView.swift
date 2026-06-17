@@ -1,13 +1,52 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var session = PebbSession.shared
+    @StateObject private var api = PebbAPI.shared
+    @State private var showNotify = false
 
     var body: some View {
-        if session.phone.isEmpty {
-            OnboardingView()
-        } else {
-            ChatView()
+        Group {
+            if !api.isLoggedIn {
+                OnboardingView()
+                    .transition(.opacity)
+            } else if showNotify {
+                NotifyView()
+                    .transition(.opacity)
+            } else {
+                mainTabView
+                    .transition(.opacity)
+                    .sheet(isPresented: $showNotify) {
+                        NotifyView()
+                    }
+            }
         }
+        .animation(.easeInOut(duration: 0.22), value: api.isLoggedIn)
+        .animation(.easeInOut(duration: 0.22), value: showNotify)
+        .onChange(of: api.isLoggedIn) { _, loggedIn in
+            if loggedIn {
+                let center = UNUserNotificationCenter.current()
+                center.getNotificationSettings { settings in
+                    if settings.authorizationStatus != .authorized {
+                        showNotify = true
+                    }
+                }
+            }
+        }
+    }
+
+    private var mainTabView: some View {
+        TabView {
+            ChatView()
+                .tabItem {
+                    Image(systemName: "message.fill")
+                    Text("Chat")
+                }
+            NewsTabView()
+                .tabItem {
+                    Image(systemName: "newspaper.fill")
+                    Text("News")
+                }
+        }
+        .tint(Color(hex: "7C6FCD"))
     }
 }

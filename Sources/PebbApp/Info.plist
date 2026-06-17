@@ -41,5 +41,13 @@
     </dict>
     <key>UIUserInterfaceStyle</key>
     <string>Dark</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Pebb uses photos to share images in your chat.</string>
+    <key>NSCameraUsageDescription</key>
+    <string>Pebb uses the camera to take photos for your chat.</string>
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>remote-notification</string>
+    </array>
 </dict>
 </plist>
