@@ -28,15 +28,17 @@ jobs:
 
       - name: Package IPA
         run: |
-          echo "=== Searching for .app ==="
-          find DerivedData -name "*.app" 2>/dev/null || true
-          APP=$(find DerivedData/Build/Products -name "*.app" -maxdepth 3 | head -1)
-          if [ -z "$APP" ]; then
-            APP=$(find DerivedData -name "*.app" -not -path "*iphonesimulator*" | head -1)
+          set -e
+          BINARY=$(find DerivedData/Build/Products -type f -name "PebbApp" -not -path "*.dSYM*" -maxdepth 4 | head -1)
+          echo "Binary: $BINARY"
+          BUNDLE=$(find DerivedData/Build/Products -name "*.bundle" -maxdepth 4 | head -1)
+          echo "Bundle: $BUNDLE"
+          mkdir -p Payload/PebbApp.app
+          cp "$BINARY" Payload/PebbApp.app/PebbApp
+          cp Sources/PebbApp/Info.plist Payload/PebbApp.app/Info.plist
+          if [ -n "$BUNDLE" ]; then
+            cp -r "$BUNDLE" Payload/PebbApp.app/
           fi
-          echo "Using: $APP"
-          mkdir -p Payload
-          cp -r "$APP" Payload/
           zip -r Pebb.ipa Payload
           ls -lh Pebb.ipa
 
