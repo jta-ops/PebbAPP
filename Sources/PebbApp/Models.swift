@@ -36,7 +36,9 @@ struct DiscordServer: Codable {
 }
 
 // MARK: - News Article
-struct NewsArticle: Codable, Identifiable {
+struct NewsArticle: Codable, Identifiable, Hashable {
+    static func == (lhs: NewsArticle, rhs: NewsArticle) -> Bool { lhs.slug == rhs.slug }
+    func hash(into hasher: inout Hasher) { hasher.combine(slug) }
     var id: String { slug }
     let slug: String
     let title: String
