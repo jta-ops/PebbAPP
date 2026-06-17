@@ -77,7 +77,7 @@ struct OnboardingView: View {
 
                     Text("your ai · always on")
                         .font(.system(size: 16, weight: .medium, design: .rounded))
-                        .foregroundColor(Color(hex: "6B7280"))
+                        .foregroundStyle(Color(hex: "6B7280"))
                 }
                 .opacity(stage >= 2 ? 1 : 0)
                 .offset(y: stage >= 2 ? 0 : 14)
@@ -87,11 +87,11 @@ struct OnboardingView: View {
                     HStack {
                         Text("enter your number to get started")
                             .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(Color(hex: "9CA3AF"))
+                            .foregroundStyle(Color(hex: "9CA3AF"))
                         Spacer()
                         if digits.count >= 9 {
                             Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(Color(hex: "22C55E"))
+                                .foregroundStyle(Color(hex: "22C55E"))
                                 .transition(.scale.combined(with: .opacity))
                         }
                     }
@@ -103,7 +103,7 @@ struct OnboardingView: View {
                                 .font(.system(size: 20))
                             Text("+61")
                                 .font(.system(size: 16, weight: .bold))
-                                .foregroundColor(Color(hex: "C4BBFF"))
+                                .foregroundStyle(Color(hex: "C4BBFF"))
                         }
                         .padding(.horizontal, 16)
 
@@ -120,7 +120,7 @@ struct OnboardingView: View {
                             .focused($focused)
                             .keyboardType(.phonePad)
                             .font(.system(size: 18, weight: .semibold, design: .monospaced))
-                            .foregroundColor(.white)
+                            .foregroundStyle(Color.white)
                             .tint(Color(hex: "A78BFA"))
                             .padding(.horizontal, 14)
                     }
@@ -201,11 +201,12 @@ struct OnboardingView: View {
 
                         HStack(spacing: 8) {
                             Text("start chatting")
+                                .fixedSize(horizontal: true, vertical: false)
                                 .font(.system(size: 17, weight: .bold))
-                                .foregroundColor(canContinue ? .white : Color(hex: "4B5563"))
+                                .foregroundStyle(canContinue ? Color.white : Color(hex: "4B5563"))
                             Image(systemName: "arrow.right")
                                 .font(.system(size: 15, weight: .bold))
-                                .foregroundColor(canContinue ? .white.opacity(0.75) : Color(hex: "4B5563"))
+                                .foregroundStyle(canContinue ? Color.white.opacity(0.75) : Color(hex: "4B5563"))
                         }
                     }
                     .frame(height: 58)
@@ -224,8 +225,9 @@ struct OnboardingView: View {
                 .animation(.spring(response: 0.16, dampingFraction: 0.35), value: buttonPressed)
 
                 Text("pebb texts from +61 489 934 800 · free to start")
+                    .fixedSize(horizontal: false, vertical: true)
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(Color(hex: "374151"))
+                    .foregroundStyle(Color(hex: "374151"))
                     .padding(.top, 14)
                     .opacity(stage >= 4 ? 1 : 0)
 

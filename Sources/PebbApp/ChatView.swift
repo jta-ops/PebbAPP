@@ -419,12 +419,12 @@ struct GlassNavBar: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Pebb")
                         .font(.system(size: 17, weight: .bold))
-                        .foregroundColor(.white)
+                        .foregroundStyle(Color.white)
                     HStack(spacing: 5) {
                         OnlineDot()
                         Text("always on · ai")
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Color(hex: "9CA3AF"))
+                            .foregroundStyle(Color(hex: "9CA3AF"))
                     }
                 }
 
@@ -532,10 +532,11 @@ struct WelcomeCard: View {
             VStack(spacing: 6) {
                 Text("hey, i'm pebb")
                     .font(.system(size: 22, weight: .bold))
-                    .foregroundColor(.white)
+                    .foregroundStyle(Color.white)
                 Text("your ai — track goals, search the web, build apps\nor just talk. i'm always on.")
+                    .fixedSize(horizontal: false, vertical: true)
                     .font(.system(size: 14))
-                    .foregroundColor(Color(hex: "9CA3AF"))
+                    .foregroundStyle(Color(hex: "9CA3AF"))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 20)
             }
@@ -578,8 +579,9 @@ struct SuggestionChip: View {
             action()
         } label: {
             Text(label)
+                .fixedSize(horizontal: true, vertical: false)
                 .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(Color(hex: "C4BBFF"))
+                .foregroundStyle(Color(hex: "C4BBFF"))
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
                 .background(.ultraThinMaterial)
@@ -702,8 +704,9 @@ struct MessageBubble: View {
                     withAnimation { showTime.toggle() }
                 } label: {
                     Text(message.text)
-                        .foregroundColor(isUser ? Color(hex: "F0EDFF") : Color(hex: "E5E5F0"))
-                        .font(Font.system(size: 15.5))
+                        .fixedSize(horizontal: false, vertical: true)
+                        .foregroundStyle(isUser ? Color(hex: "F0EDFF") : Color(hex: "E5E5F0"))
+                        .font(.system(size: 15.5))
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
                         .background(
@@ -716,7 +719,7 @@ struct MessageBubble: View {
                                     .opacity(0.95)
                                 } else {
                                     ZStack {
-                                        Color.ultraThinMaterial
+                                        Rectangle().fill(.ultraThinMaterial)
                                         Color(hex: "7C6FCD").opacity(0.07)
                                     }
                                 }
@@ -761,8 +764,9 @@ struct MessageBubble: View {
 
                 if showTime {
                     Text(timeString(message.timestamp))
+                        .fixedSize(horizontal: true, vertical: false)
                         .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(Color(hex: "4B5563"))
+                        .foregroundStyle(Color(hex: "4B5563"))
                         .transition(.opacity.combined(with: .scale(scale: 0.85)))
                 }
             }
@@ -814,7 +818,7 @@ struct TypingIndicator: View {
                 Circle().fill(.ultraThinMaterial).frame(width: 30, height: 30)
                     .overlay(Circle().stroke(Color(hex: "7C6FCD").opacity(0.4), lineWidth: 1))
                 Text("P").font(.system(size: 13, weight: .black, design: .rounded))
-                    .foregroundColor(Color(hex: "C4BBFF"))
+                    .foregroundStyle(Color(hex: "C4BBFF"))
             }
             HStack(spacing: 5) {
                 ForEach(0..<3, id: \.self) { i in
@@ -887,7 +891,8 @@ struct GlassComposer: View {
                 ZStack(alignment: .leading) {
                     if input.isEmpty {
                         Text("message pebb…")
-                            .foregroundColor(Color(hex: "4B5563"))
+                            .fixedSize(horizontal: false, vertical: true)
+                            .foregroundStyle(Color(hex: "4B5563"))
                             .font(.system(size: 16))
                             .padding(.leading, 16)
                             .padding(.bottom, 12)
@@ -895,7 +900,7 @@ struct GlassComposer: View {
                     TextEditor(text: $input)
                         .focused($focused)
                         .font(.system(size: 16))
-                        .foregroundColor(.white)
+                        .foregroundStyle(Color.white)
                         .tint(Color(hex: "A78BFA"))
                         .scrollContentBackground(.hidden)
                         .padding(.horizontal, 12)
@@ -956,7 +961,7 @@ struct GlassComposer: View {
 
                         Image(systemName: "arrow.up")
                             .font(.system(size: 16, weight: .black))
-                            .foregroundColor(.white)
+                            .foregroundStyle(Color.white)
                             .offset(y: pressed ? 2 : 0)
                     }
                     .frame(width: 44, height: 44)
@@ -998,7 +1003,7 @@ struct SettingsSheet: View {
 
                 Text("Settings")
                     .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(.white)
+                    .foregroundStyle(Color.white)
                     .padding(.top, 16)
                     .padding(.bottom, 24)
 
@@ -1007,10 +1012,10 @@ struct SettingsSheet: View {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Phone Number")
                                 .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(Color(hex: "9CA3AF"))
+                                .foregroundStyle(Color(hex: "9CA3AF"))
                             Text(session.phone)
                                 .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(.white)
+                                .foregroundStyle(Color.white)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
@@ -1023,10 +1028,10 @@ struct SettingsSheet: View {
                             HStack {
                                 Text("Clear Chat History")
                                     .font(.system(size: 15, weight: .semibold))
-                                    .foregroundColor(Color(hex: "F87171"))
+                                    .foregroundStyle(Color(hex: "F87171"))
                                 Spacer()
                                 Image(systemName: "trash")
-                                    .foregroundColor(Color(hex: "F87171"))
+                                    .foregroundStyle(Color(hex: "F87171"))
                             }
                         }
                     }
@@ -1036,13 +1041,13 @@ struct SettingsSheet: View {
                             VStack(spacing: 12) {
                                 Text("Clear all messages?")
                                     .font(.system(size: 14))
-                                    .foregroundColor(Color(hex: "D1D5DB"))
+                                    .foregroundStyle(Color(hex: "D1D5DB"))
                                 HStack(spacing: 10) {
                                     Button("Cancel") {
                                         withAnimation { confirmReset = false }
                                     }
                                     .font(.system(size: 14, weight: .semibold))
-                                    .foregroundColor(Color(hex: "9CA3AF"))
+                                    .foregroundStyle(Color(hex: "9CA3AF"))
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 10)
                                     .background(Color(hex: "1E1E2E"))
@@ -1053,7 +1058,7 @@ struct SettingsSheet: View {
                                         confirmReset = false
                                     }
                                     .font(.system(size: 14, weight: .bold))
-                                    .foregroundColor(.white)
+                                    .foregroundStyle(Color.white)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 10)
                                     .background(Color(hex: "DC2626"))
@@ -1072,10 +1077,10 @@ struct SettingsSheet: View {
                             HStack {
                                 Text("Sign Out")
                                     .font(.system(size: 15, weight: .semibold))
-                                    .foregroundColor(Color(hex: "9CA3AF"))
+                                    .foregroundStyle(Color(hex: "9CA3AF"))
                                 Spacer()
                                 Image(systemName: "rectangle.portrait.and.arrow.right")
-                                    .foregroundColor(Color(hex: "9CA3AF"))
+                                    .foregroundStyle(Color(hex: "9CA3AF"))
                             }
                         }
                     }
