@@ -1,6 +1,5 @@
 import SwiftUI
 
-// Liquid Glass card effect — frosted translucent surface with specular rim
 struct LiquidGlass: ViewModifier {
     var cornerRadius: CGFloat = 20
     var tint: Color = .white
@@ -14,30 +13,26 @@ struct LiquidGlass: ViewModifier {
                     Rectangle().fill(.ultraThinMaterial)
                     tint.opacity(tintOpacity)
                 }
+                .allowsHitTesting(false)
             )
             .environment(\.colorScheme, .dark)
             .overlay(
-                // Specular highlight — bright band at the top edge
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(
-                        LinearGradient(
-                            colors: [.white.opacity(0.14), .white.opacity(0.04), .clear],
-                            startPoint: .top,
-                            endPoint: UnitPoint(x: 0.5, y: 0.45)
-                        )
-                    )
+                    .fill(LinearGradient(
+                        colors: [.white.opacity(0.13), .white.opacity(0.03), .clear],
+                        startPoint: .top,
+                        endPoint: UnitPoint(x: 0.5, y: 0.45)
+                    ))
+                    .allowsHitTesting(false)
             )
             .overlay(
-                // Glass rim stroke — brighter at top-left, fades to dim
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(
-                        LinearGradient(
-                            colors: [.white.opacity(0.28), .white.opacity(0.07), .white.opacity(0.04)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1
-                    )
+                    .stroke(LinearGradient(
+                        colors: [.white.opacity(0.26), .white.opacity(0.06)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ), lineWidth: 1)
+                    .allowsHitTesting(false)
             )
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
             .shadow(color: .black.opacity(shadowOpacity), radius: 14, x: 0, y: 6)
@@ -46,11 +41,10 @@ struct LiquidGlass: ViewModifier {
 
 extension View {
     func liquidGlass(cornerRadius: CGFloat = 20, tint: Color = .white, tintOpacity: Double = 0.04) -> some View {
-        self.modifier(LiquidGlass(cornerRadius: cornerRadius, tint: tint, tintOpacity: tintOpacity))
+        modifier(LiquidGlass(cornerRadius: cornerRadius, tint: tint, tintOpacity: tintOpacity))
     }
 }
 
-// Inline glass pill — for tags, badges, category chips
 struct GlassPillModifier: ViewModifier {
     var tint: Color
     func body(content: Content) -> some View {
@@ -60,24 +54,22 @@ struct GlassPillModifier: ViewModifier {
                     Capsule().fill(.ultraThinMaterial)
                     Capsule().fill(tint.opacity(0.12))
                 }
+                .allowsHitTesting(false)
             )
             .environment(\.colorScheme, .dark)
             .overlay(
-                Capsule().fill(
-                    LinearGradient(colors: [.white.opacity(0.18), .clear], startPoint: .top, endPoint: .center)
-                )
+                Capsule().fill(LinearGradient(colors: [.white.opacity(0.16), .clear], startPoint: .top, endPoint: .center))
+                    .allowsHitTesting(false)
             )
             .overlay(
-                Capsule().stroke(
-                    LinearGradient(colors: [tint.opacity(0.5), tint.opacity(0.15)], startPoint: .topLeading, endPoint: .bottomTrailing),
-                    lineWidth: 1
-                )
+                Capsule().stroke(LinearGradient(colors: [tint.opacity(0.45), tint.opacity(0.12)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
+                    .allowsHitTesting(false)
             )
     }
 }
 
 extension View {
     func glassPill(tint: Color = .white) -> some View {
-        self.modifier(GlassPillModifier(tint: tint))
+        modifier(GlassPillModifier(tint: tint))
     }
 }

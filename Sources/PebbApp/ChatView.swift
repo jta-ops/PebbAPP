@@ -218,6 +218,7 @@ struct AnimatedChatBackground: View {
                 .offset(x: phase2 ? -70 : 60, y: phase2 ? 160 : 60)
         }
         .ignoresSafeArea()
+        .allowsHitTesting(false)
         .onAppear {
             withAnimation(.easeInOut(duration: 9).repeatForever(autoreverses: true)) { phase1 = true }
             withAnimation(.easeInOut(duration: 12).repeatForever(autoreverses: true).delay(2)) { phase2 = true }
