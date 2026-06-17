@@ -66,13 +66,13 @@ struct ChatView: View {
                             .animation(.spring(response: 0.42, dampingFraction: 0.82), value: session.messages.count)
                             .animation(.spring(response: 0.35, dampingFraction: 0.82), value: session.isTyping)
                         }
-                        .onChange(of: session.messages.count) { _ in
+                        .onChange(of: session.messages.count) {
                             withAnimation(.spring(response: 0.42, dampingFraction: 0.82)) {
                                 proxy.scrollTo("bottom")
                                 showScrollToBottom = false
                             }
                         }
-                        .onChange(of: session.isTyping) { _ in
+                        .onChange(of: session.isTyping) {
                             withAnimation { proxy.scrollTo("bottom") }
                         }
                         .onTapGesture { inputFocused = false }
@@ -702,7 +702,7 @@ struct MessageBubble: View {
                     withAnimation { showTime.toggle() }
                 } label: {
                     Text(message.text)
-                        .font(.system(size: 15.5))
+                        .font(Font.system(size: 15.5))
                         .foregroundColor(isUser ? Color(hex: "F0EDFF") : Color(hex: "E5E5F0"))
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
