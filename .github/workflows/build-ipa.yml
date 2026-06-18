@@ -37,15 +37,11 @@ jobs:
         run: |
           APP=$(find DerivedData/Build/Products -name "*.app" -not -path "*iphonesimulator*" | head -1)
           echo "Using: $APP"
-          # Sign inner-to-outer: app extensions (.appex) MUST be signed before the
-          # containing app, otherwise installd rejects the extension placeholder
-          # ("extensionDictionary must be set in placeholder attributes"). Using
-          # --deep on the app alone does not reliably sign nested extensions.
-          for APPEX in "$APP"/PlugIns/*.appex; do
-            [ -d "$APPEX" ] || continue
-            echo "Signing extension: $APPEX"
-            codesign --force --sign - --timestamp=none "$APPEX"
-          done
+          # Strip app extensions — sideloaded IPAs (ad-hoc signed) cannot install
+          # .appex bundles without real provisioning profiles. iOS rejects them with
+          # "extensionDictionary must be set in placeholder attributes". The main app
+          # features all work without extensions; widgets/share require a paid dev account.
+          rm -rf "$APP/PlugIns"
           codesign --force --sign - --timestamp=none "$APP"
           mkdir -p Payload
           cp -r "$APP" Payload/
