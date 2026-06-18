@@ -136,7 +136,7 @@ struct NewsTabView: View {
                     }
                 }
             }
-            \.padding(\.horizontal, 16)
+            .padding(.horizontal, 16)
             .padding(.vertical, 10)
         }
         .background(Color(hex: "0B0A12"))
@@ -150,7 +150,7 @@ struct NewsTabView: View {
             Text(title.capitalized)
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(active ? .white : color)
-                \.padding(\.horizontal, 16)
+                .padding(.horizontal, 16)
                 .padding(.vertical, 7)
                 .background(active ? AnyShapeStyle(color) : AnyShapeStyle(color.opacity(0.12)))
                 .overlay(Capsule().stroke(color.opacity(active ? 0 : 0.4), lineWidth: 1))
@@ -194,7 +194,7 @@ struct NewsTabView: View {
                                 ShareLink(item: url) { Label("Share", systemImage: "square.and.arrow.up") }
                             }
                         }
-                        \.padding(\.horizontal, 16)
+                        .padding(.horizontal, 16)
                 }
             }
             .padding(.vertical, 12)
@@ -254,7 +254,7 @@ struct BookmarksView: View {
                                             bookmarks.remove(article)
                                         } label: { Label("Remove", systemImage: "trash") }
                                     }
-                                    \.padding(\.horizontal, 16)
+                                    .padding(.horizontal, 16)
                             }
                         }
                         .padding(.vertical, 12)
