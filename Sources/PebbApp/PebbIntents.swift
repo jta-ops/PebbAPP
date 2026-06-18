@@ -38,7 +38,7 @@ struct PebbShortcuts: AppShortcutsProvider {
             phrases: [
                 "Ask \(.applicationName) something",
                 "Ask \(.applicationName)",
-                "Tell \(.applicationName) \(\.$message)"
+                "Chat with \(.applicationName)"
             ],
             shortTitle: "Ask Pebb",
             systemImageName: "sparkles"
