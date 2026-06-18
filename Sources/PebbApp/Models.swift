@@ -2,19 +2,28 @@ import Foundation
 import UIKit
 
 // MARK: - Message
+enum MessageStatus: Equatable { case sending, sent, delivered, failed }
+
 struct ChatMessage: Identifiable, Equatable {
     let id = UUID()
     let role: String
-    let content: String
+    var content: String
     let imageURL: String?
     let timestamp: String
+    var status: MessageStatus
+    var isVoice: Bool
+    var isStreaming: Bool
 
     var isUser: Bool { role == "user" }
 
-    init(role: String, content: String, imageURL: String? = nil) {
+    init(role: String, content: String, imageURL: String? = nil,
+         status: MessageStatus = .delivered, isVoice: Bool = false, isStreaming: Bool = false) {
         self.role = role
         self.content = content
         self.imageURL = imageURL
+        self.status = status
+        self.isVoice = isVoice
+        self.isStreaming = isStreaming
         let f = DateFormatter()
         f.dateFormat = "h:mm a"
         self.timestamp = f.string(from: Date())
@@ -75,7 +84,11 @@ class PebbAPI: ObservableObject {
     private let baseURL = "https://pebb.dev"
 
     @Published var token: String {
-        didSet { UserDefaults.standard.set(token, forKey: "pebb_token") }
+        didSet {
+            UserDefaults.standard.set(token, forKey: "pebb_token")
+            // mirror into the App Group so the Share Extension can post on our behalf
+            UserDefaults(suiteName: "group.dev.pebb.app")?.set(token, forKey: "pebb_token")
+        }
     }
     @Published var messages: [ChatMessage] = []
     @Published var isTyping = false
@@ -85,6 +98,28 @@ class PebbAPI: ObservableObject {
     private init() {
         token = UserDefaults.standard.string(forKey: "pebb_token") ?? ""
         isLoggedIn = !token.isEmpty
+    }
+
+    /// Completes the onboarding wizard (mock auth). Persists a session token so
+    /// login survives relaunches and the notification sheet doesn't bounce the
+    /// user back to the wizard.
+    @MainActor
+    func completeMockLogin(name: String = "") {
+        if token.isEmpty {
+            token = "demo-" + UUID().uuidString
+        }
+        if !name.isEmpty {
+            UserDefaults.standard.set(name, forKey: "pebb_name")
+        }
+        isLoggedIn = true
+    }
+
+    var displayName: String { UserDefaults.standard.string(forKey: "pebb_name") ?? "" }
+    var messagesSent: Int { UserDefaults.standard.integer(forKey: "pebb_msg_count") }
+
+    var greeting: String {
+        let n = displayName
+        return n.isEmpty ? "hey! what's on your mind? 💜" : "hey \(n)! what's on your mind? 💜"
     }
 
     // MARK: - Auth
@@ -153,7 +188,14 @@ class PebbAPI: ObservableObject {
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         req.httpBody = try JSONSerialization.data(withJSONObject: ["token": token])
         let (data, resp) = try await URLSession.shared.data(for: req)
-        if (resp as? HTTPURLResponse)?.statusCode == 401 { signOut(); return }
+        // Don't auto-sign-out on 401 — demo/mock sessions have no real token and
+        // would otherwise bounce the user straight back to onboarding.
+        if (resp as? HTTPURLResponse)?.statusCode == 401 {
+            if messages.isEmpty {
+                messages = [ChatMessage(role: "assistant", content: greeting)]
+            }
+            return
+        }
         let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
         if let msgs = json["messages"] as? [[String: Any]] {
             messages = msgs.map { m in
@@ -161,21 +203,26 @@ class PebbAPI: ObservableObject {
             }
         }
         if messages.isEmpty {
-            messages = [ChatMessage(role: "assistant", content: "hey! what's on your mind? 💜")]
+            messages = [ChatMessage(role: "assistant", content: greeting)]
         }
     }
 
     @MainActor
-    func sendMessage(_ text: String, imageData: Data? = nil) async throws {
-        let userMsg = ChatMessage(role: "user", content: text)
+    func sendMessage(_ text: String, imageData: Data? = nil, isVoice: Bool = false) async throws {
+        let userMsg = ChatMessage(role: "user", content: text, status: .sending, isVoice: isVoice)
         messages.append(userMsg)
+        let userIdx = messages.count - 1
+        UserDefaults.standard.set(messagesSent + 1, forKey: "pebb_msg_count")
         isTyping = true
+        LiveActivityManager.shared.startThinking()
 
         do {
             var imageUrl: String? = nil
             if let imgData = imageData {
                 imageUrl = try await uploadImage(imgData)
             }
+            // user message accepted by server
+            if messages.indices.contains(userIdx) { messages[userIdx].status = .sent }
 
             let url = URL(string: "\(baseURL)/webchat/api/chat")!
             var req = URLRequest(url: url)
@@ -186,16 +233,66 @@ class PebbAPI: ObservableObject {
             req.httpBody = try JSONSerialization.data(withJSONObject: body)
             let (data, resp) = try await URLSession.shared.data(for: req)
             isTyping = false
-            if (resp as? HTTPURLResponse)?.statusCode == 401 { signOut(); return }
+            if messages.indices.contains(userIdx) { messages[userIdx].status = .delivered }
+            if (resp as? HTTPURLResponse)?.statusCode == 401 {
+                await streamIn("you're in demo mode — connect your number in Account to chat for real 💜")
+                return
+            }
             let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
             if let replies = json["messages"] as? [String] {
                 for reply in replies {
-                    messages.append(ChatMessage(role: "assistant", content: reply))
+                    await streamIn(reply)
+                }
+                if let last = replies.last {
+                    LiveActivityManager.shared.finishThinking(preview: last)
+                    LiveActivityManager.shared.updateWidgetData(lastMessage: last)
                 }
             }
         } catch {
             isTyping = false
-            messages.append(ChatMessage(role: "assistant", content: "couldn't reach pebb — check your connection and try again"))
+            if messages.indices.contains(userIdx) { messages[userIdx].status = .failed }
+            LiveActivityManager.shared.endAll()
+            await streamIn("couldn't reach pebb — check your connection and try again")
+        }
+    }
+
+    /// Reveals an assistant message character-by-character (typewriter effect).
+    @MainActor
+    func streamIn(_ fullText: String) async {
+        messages.append(ChatMessage(role: "assistant", content: "", isStreaming: true))
+        let idx = messages.count - 1
+        var shown = ""
+        // chunk by a few chars for speed; slower for short replies so it's visible
+        let chars = Array(fullText)
+        let step = max(1, chars.count / 240)
+        var i = 0
+        while i < chars.count {
+            let end = min(i + step, chars.count)
+            shown += String(chars[i..<end])
+            if messages.indices.contains(idx) { messages[idx].content = shown }
+            i = end
+            try? await Task.sleep(nanoseconds: 14_000_000)
+        }
+        if messages.indices.contains(idx) { messages[idx].isStreaming = false }
+    }
+
+    /// One-shot chat used by the Siri "Ask Pebb" intent — returns the reply text.
+    @MainActor
+    func askOneShot(_ text: String) async -> String {
+        do {
+            let url = URL(string: "\(baseURL)/webchat/api/chat")!
+            var req = URLRequest(url: url)
+            req.httpMethod = "POST"
+            req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            req.httpBody = try JSONSerialization.data(withJSONObject: ["token": token, "message": text])
+            let (data, _) = try await URLSession.shared.data(for: req)
+            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
+            if let replies = json["messages"] as? [String], let first = replies.first {
+                return first
+            }
+            return "I couldn't get an answer right now."
+        } catch {
+            return "I couldn't reach Pebb. Check your connection."
         }
     }
 
@@ -233,6 +330,11 @@ class PebbAPI: ObservableObject {
         let (data, _) = try await URLSession.shared.data(from: url)
         let resp = try JSONDecoder().decode(NewsListResponse.self, from: data)
         newsArticles = resp.articles
+        if let top = resp.articles.first {
+            LiveActivityManager.shared.updateWidgetData(
+                headline: top.title, category: top.category, source: top.source
+            )
+        }
     }
 
     @MainActor

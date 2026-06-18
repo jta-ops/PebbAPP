@@ -37,8 +37,16 @@ jobs:
         run: |
           APP=$(find DerivedData/Build/Products -name "*.app" -not -path "*iphonesimulator*" | head -1)
           echo "Using: $APP"
-          # Ad-hoc sign so sideloading tools (Sideloadly, AltStore) recognise the IPA
-          codesign --force --deep --sign - "$APP"
+          # Sign inner-to-outer: app extensions (.appex) MUST be signed before the
+          # containing app, otherwise installd rejects the extension placeholder
+          # ("extensionDictionary must be set in placeholder attributes"). Using
+          # --deep on the app alone does not reliably sign nested extensions.
+          for APPEX in "$APP"/PlugIns/*.appex; do
+            [ -d "$APPEX" ] || continue
+            echo "Signing extension: $APPEX"
+            codesign --force --sign - --timestamp=none "$APPEX"
+          done
+          codesign --force --sign - --timestamp=none "$APP"
           mkdir -p Payload
           cp -r "$APP" Payload/
           zip -r Pebb.ipa Payload

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct OnboardingView: View {
     @StateObject private var api = PebbAPI.shared
@@ -46,7 +47,6 @@ struct OnboardingView: View {
                     if step == 6 { stepTopics.stepTransition(step, 6, direction) }
                     if step == 7 { stepDone.stepTransition(step, 7, direction) }
                 }
-                .padding(.horizontal, 20)
                 Spacer()
             }
         }
@@ -90,13 +90,8 @@ struct OnboardingView: View {
     // MARK: - Step 0: Welcome
     private var stepWelcome: some View {
         WizardCard {
-            Text("✦")
-                .font(.system(size: 40))
-                .frame(width: 64, height: 64)
-                .background(Color(hex: "7C6FCD").opacity(0.15))
-                .clipShape(RoundedRectangle(cornerRadius: 20))
-                .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color(hex: "7C6FCD").opacity(0.3), lineWidth: 1))
-                .shadow(color: Color(hex: "7C6FCD").opacity(0.3), radius: 20)
+            PebbLogoMark(size: 72, corner: 22)
+                .shadow(color: Color(hex: "7C6FCD").opacity(0.4), radius: 20)
                 .padding(.bottom, 4)
 
             Text("Hey, let's set up Pebb")
@@ -347,7 +342,8 @@ struct OnboardingView: View {
             .padding(.bottom, 8)
 
             WizardButton("Open Pebb →") {
-                api.isLoggedIn = true
+                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                api.completeMockLogin(name: name)
             }
         }
     }
@@ -382,7 +378,7 @@ struct OnboardingView: View {
 
     // MARK: - Back button
     private var backButton: some View {
-        Button { back() } label: {
+        Button { UIImpactFeedbackGenerator(style: .light).impactOccurred(); back() } label: {
             HStack(spacing: 5) {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 12, weight: .semibold))
@@ -430,12 +426,16 @@ struct OnboardingView: View {
 struct WizardCard<Content: View>: View {
     @ViewBuilder let content: Content
     var body: some View {
-        VStack(alignment: .center, spacing: 10) {
+        VStack(alignment: .center, spacing: 12) {
             content
         }
         .frame(maxWidth: .infinity)
-        .padding(24)
+        .padding(.horizontal, 28)
+        .padding(.vertical, 32)
         .liquidGlass(cornerRadius: 28, tint: Color(hex: "7C6FCD"), tintOpacity: 0.04)
+        .frame(maxWidth: 420)
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 24)
     }
 }
 
@@ -468,7 +468,10 @@ struct WizardButton: View {
         self.label = label; self.loading = loading; self.action = action
     }
     var body: some View {
-        Button(action: action) {
+        Button {
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            action()
+        } label: {
             HStack(spacing: 8) {
                 if loading { ProgressView().tint(.white).scaleEffect(0.8) }
                 Text(label)
@@ -493,7 +496,10 @@ struct WizardGhostButton: View {
         self.label = label; self.action = action
     }
     var body: some View {
-        Button(action: action) {
+        Button {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            action()
+        } label: {
             Text(label)
                 .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(Color(hex: "6E6A8A"))
@@ -511,7 +517,10 @@ struct WizardChoice: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            action()
+        } label: {
             HStack(spacing: 12) {
                 Text(icon).font(.system(size: 22))
                 VStack(alignment: .leading, spacing: 2) {

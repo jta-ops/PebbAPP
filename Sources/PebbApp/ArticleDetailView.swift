@@ -1,9 +1,12 @@
 import SwiftUI
 import WebKit
+import UIKit
 
 struct ArticleDetailView: View {
     let article: NewsArticle
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var bookmarks = BookmarksStore.shared
+    @State private var scrollProgress: CGFloat = 0
 
     var catColor: Color { categoryColor(article.category) }
 
@@ -29,11 +32,49 @@ struct ArticleDetailView: View {
                     sourcesSection(sources)
                 }
             }
+            .background(
+                GeometryReader { geo in
+                    Color.clear.preference(
+                        key: ScrollOffsetKey.self,
+                        value: -geo.frame(in: .named("articleScroll")).minY / max(1, geo.size.height - UIScreen.main.bounds.height)
+                    )
+                }
+            )
+        }
+        .coordinateSpace(name: "articleScroll")
+        .onPreferenceChange(ScrollOffsetKey.self) { v in
+            scrollProgress = min(1, max(0, v))
         }
         .background(Color(hex: "0B0A12"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Color(hex: "0B0A12"), for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                HStack(spacing: 14) {
+                    Button {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        bookmarks.toggle(article)
+                    } label: {
+                        Image(systemName: bookmarks.isBookmarked(article) ? "bookmark.fill" : "bookmark")
+                            .foregroundStyle(Color(hex: "9B8FE8"))
+                    }
+                    if let url = URL(string: article.source_url) {
+                        ShareLink(item: url) {
+                            Image(systemName: "square.and.arrow.up").foregroundStyle(Color(hex: "9B8FE8"))
+                        }
+                    }
+                }
+            }
+        }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            GeometryReader { geo in
+                Rectangle()
+                    .fill(LinearGradient(colors: [catColor, Color(hex: "9B8FE8")], startPoint: .leading, endPoint: .trailing))
+                    .frame(width: geo.size.width * scrollProgress, height: 3)
+            }
+            .frame(height: 3)
+        }
     }
 
     @ViewBuilder
@@ -141,6 +182,11 @@ struct ArticleDetailView: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 20)
     }
+}
+
+struct ScrollOffsetKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
 }
 
 struct ArticleWebView: UIViewRepresentable {

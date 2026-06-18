@@ -34,12 +34,12 @@ class ShareViewController: UIViewController {
         iconBg.layer.cornerRadius = 16
         iconBg.translatesAutoresizingMaskIntoConstraints = false
 
-        let iconLabel = UILabel()
-        iconLabel.text = "✦"
-        iconLabel.font = .systemFont(ofSize: 22)
-        iconLabel.textAlignment = .center
-        iconLabel.translatesAutoresizingMaskIntoConstraints = false
-        iconBg.addSubview(iconLabel)
+        let iconView = UIImageView(image: UIImage(named: "PebbLogo"))
+        iconView.contentMode = .scaleAspectFill
+        iconView.layer.cornerRadius = 10
+        iconView.clipsToBounds = true
+        iconView.translatesAutoresizingMaskIntoConstraints = false
+        iconBg.addSubview(iconView)
 
         let title = UILabel()
         title.text = "Sending to Pebb…"
@@ -75,8 +75,10 @@ class ShareViewController: UIViewController {
             iconBg.centerXAnchor.constraint(equalTo: card.centerXAnchor),
             iconBg.widthAnchor.constraint(equalToConstant: 52),
             iconBg.heightAnchor.constraint(equalToConstant: 52),
-            iconLabel.centerXAnchor.constraint(equalTo: iconBg.centerXAnchor),
-            iconLabel.centerYAnchor.constraint(equalTo: iconBg.centerYAnchor),
+            iconView.centerXAnchor.constraint(equalTo: iconBg.centerXAnchor),
+            iconView.centerYAnchor.constraint(equalTo: iconBg.centerYAnchor),
+            iconView.widthAnchor.constraint(equalToConstant: 36),
+            iconView.heightAnchor.constraint(equalToConstant: 36),
 
             title.topAnchor.constraint(equalTo: iconBg.bottomAnchor, constant: 16),
             title.centerXAnchor.constraint(equalTo: card.centerXAnchor),
@@ -128,7 +130,8 @@ class ShareViewController: UIViewController {
     }
 
     private func sendToAPI(text: String, imageData: Data?) {
-        let token = UserDefaults.standard.string(forKey: "pebb_token") ?? ""
+        let token = UserDefaults(suiteName: "group.dev.pebb.app")?.string(forKey: "pebb_token")
+            ?? UserDefaults.standard.string(forKey: "pebb_token") ?? ""
         guard !token.isEmpty else { done(); return }
 
         var body: [String: Any] = ["token": token, "message": text.isEmpty ? "(shared content)" : text]

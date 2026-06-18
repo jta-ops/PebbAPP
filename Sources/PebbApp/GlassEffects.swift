@@ -73,3 +73,20 @@ extension View {
         modifier(GlassPillModifier(tint: tint))
     }
 }
+
+// MARK: - Real Pebb logo mark (replaces all drawn/symbol logos)
+struct PebbLogoMark: View {
+    var size: CGFloat = 30
+    var corner: CGFloat = 9
+    var body: some View {
+        Image("PebbLogo")
+            .resizable()
+            .scaledToFill()
+            .frame(width: size, height: size)
+            .clipShape(RoundedRectangle(cornerRadius: corner, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: corner, style: .continuous)
+                    .stroke(Color.white.opacity(0.12), lineWidth: 0.5)
+            )
+    }
+}

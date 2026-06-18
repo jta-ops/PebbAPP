@@ -25,14 +25,15 @@ struct SplashView: View {
             VStack(spacing: 30) {
                 // Logo orb
                 ZStack {
-                    Image(systemName: "sparkle")
-                        .font(.system(size: 50, weight: .bold))
-                        .foregroundStyle(LinearGradient(
-                            colors: [Color(hex: "F0EDFF"), Color(hex: "C4BBFF"), Color(hex: "7C6FCD")],
-                            startPoint: .topLeading, endPoint: .bottomTrailing
-                        ))
+                    Image("PebbLogo")
+                        .resizable()
+                        .scaledToFill()
                         .frame(width: 114, height: 114)
-                        .liquidGlass(cornerRadius: 30, tint: Color(hex: "7C6FCD"), tintOpacity: 0.1)
+                        .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 30, style: .continuous)
+                                .stroke(Color.white.opacity(0.14), lineWidth: 1)
+                        )
                         .shadow(color: Color(hex: "7C6FCD").opacity(0.55), radius: 36, y: 12)
                 }
                 .scaleEffect(logoScale)

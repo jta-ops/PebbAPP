@@ -22,6 +22,7 @@ targets:
       - path: Sources/PebbApp
         excludes:
           - Info.plist
+      - path: Sources/Shared
     resources:
       - path: Sources/PebbApp/Assets.xcassets
     info:
@@ -34,11 +35,14 @@ targets:
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
         UIUserInterfaceStyle: Dark
+        NSSupportsLiveActivities: true
         NSCameraUsageDescription: "Used to send photos to Pebb"
         NSPhotoLibraryUsageDescription: "Used to send photos to Pebb"
         NSMicrophoneUsageDescription: "Used to send voice messages to Pebb"
     dependencies:
       - target: PebbShare
+        embed: true
+      - target: PebbWidget
         embed: true
     settings:
       base:
@@ -48,6 +52,7 @@ targets:
         CODE_SIGN_IDENTITY: ""
         CODE_SIGNING_REQUIRED: NO
         CODE_SIGNING_ALLOWED: NO
+        CODE_SIGN_ENTITLEMENTS: Sources/PebbApp/PebbApp.entitlements
         ENABLE_BITCODE: NO
 
   PebbShare:
@@ -66,6 +71,30 @@ targets:
         CODE_SIGN_IDENTITY: ""
         CODE_SIGNING_REQUIRED: NO
         CODE_SIGNING_ALLOWED: NO
+        ENABLE_BITCODE: NO
+        SWIFT_VERSION: "5.9"
+        IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+
+  PebbWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Sources/PebbWidget
+        excludes:
+          - Info.plist
+      - path: Sources/Shared
+    resources:
+      - path: Sources/PebbWidget/Assets.xcassets
+    info:
+      path: Sources/PebbWidget/Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.pebb.app.widget
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: ""
+        CODE_SIGNING_REQUIRED: NO
+        CODE_SIGNING_ALLOWED: NO
+        CODE_SIGN_ENTITLEMENTS: Sources/PebbWidget/PebbWidget.entitlements
         ENABLE_BITCODE: NO
         SWIFT_VERSION: "5.9"
         IPHONEOS_DEPLOYMENT_TARGET: "17.0"

@@ -1,4 +1,6 @@
 import SwiftUI
+import UIKit
+import UserNotifications
 
 struct NotifyView: View {
     @Environment(\.dismiss) private var dismiss

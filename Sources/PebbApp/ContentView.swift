@@ -4,6 +4,8 @@ import UserNotifications
 struct ContentView: View {
     @StateObject private var api = PebbAPI.shared
     @State private var showNotify = false
+    @State private var selectedTab = 0
+    @State private var tabScales: [CGFloat] = [1, 1]
 
     var body: some View {
         Group {
@@ -33,18 +35,21 @@ struct ContentView: View {
     }
 
     private var mainTabView: some View {
-        TabView {
+        TabView(selection: $selectedTab) {
             ChatView()
                 .tabItem {
-                    Image(systemName: "message.fill")
-                    Text("Chat")
+                    Label("Chat", systemImage: "message.fill")
                 }
+                .tag(0)
             NewsTabView()
                 .tabItem {
-                    Image(systemName: "newspaper.fill")
-                    Text("News")
+                    Label("News", systemImage: "newspaper.fill")
                 }
+                .tag(1)
         }
         .tint(Color(hex: "7C6FCD"))
+        .onChange(of: selectedTab) { _, _ in
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        }
     }
 }
