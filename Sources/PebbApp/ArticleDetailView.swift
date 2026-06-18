@@ -59,7 +59,7 @@ struct ArticleDetailView: View {
                         Image(systemName: bookmarks.isBookmarked(article) ? "bookmark.fill" : "bookmark")
                             .foregroundStyle(Color(hex: "9B8FE8"))
                     }
-                    if let url = URL(string: article.source_url) {
+                    if let src = article.source_url, let url = URL(string: src) {
                         ShareLink(item: url) {
                             Image(systemName: "square.and.arrow.up").foregroundStyle(Color(hex: "9B8FE8"))
                         }
@@ -79,8 +79,8 @@ struct ArticleDetailView: View {
 
     @ViewBuilder
     private var heroImage: some View {
-        if !article.image_url.isEmpty {
-            AsyncImage(url: URL(string: article.image_url)) { phase in
+        if !article.absoluteImageURL.isEmpty {
+            AsyncImage(url: URL(string: article.absoluteImageURL)) { phase in
                 switch phase {
                 case .empty:
                     Rectangle()

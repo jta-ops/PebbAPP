@@ -13,7 +13,6 @@ struct OnboardingView: View {
 
     // Step 2
     @State private var code = ""
-    @State private var codeAutoFilled = false
     @State private var verifying = false
     @State private var codeError = ""
     @FocusState private var codeFocused: Bool
@@ -137,7 +136,7 @@ struct OnboardingView: View {
             }
 
             WizardButton(sendingCode ? "Sending…" : "Send code", loading: sendingCode) {
-                mockSendCode()
+                sendCode()
             }
         }
     }
@@ -155,21 +154,6 @@ struct OnboardingView: View {
                 .foregroundStyle(Color(hex: "6E6A8A"))
                 .padding(.bottom, 4)
 
-            if codeAutoFilled {
-                HStack(spacing: 6) {
-                    Image(systemName: "bolt.fill")
-                        .font(.system(size: 10))
-                        .foregroundStyle(Color(hex: "34D399"))
-                    Text("Code filled in for you")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(Color(hex: "34D399"))
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 5)
-                .glassPill(tint: Color(hex: "34D399"))
-                .padding(.bottom, 4)
-            }
-
             WizardField(label: "6-digit code") {
                 TextField("123456", text: $code)
                     .keyboardType(.numberPad)
@@ -179,7 +163,6 @@ struct OnboardingView: View {
                     .focused($codeFocused)
                     .onChange(of: code) { _, v in
                         code = String(v.filter(\.isNumber).prefix(6))
-                        if code.count == 6 { mockVerify() }
                     }
             }
 
@@ -190,7 +173,7 @@ struct OnboardingView: View {
             }
 
             WizardButton(verifying ? "Verifying…" : "Verify →", loading: verifying) {
-                mockVerify()
+                verifyCode()
             }
         }
         .onAppear {
@@ -391,28 +374,37 @@ struct OnboardingView: View {
         .padding(.bottom, 4)
     }
 
-    // MARK: - Mock auth
-    private func mockSendCode() {
-        guard !phone.isEmpty else { phoneError = "Enter your phone number"; return }
+    // MARK: - Auth
+    private func sendCode() {
+        let trimmed = phone.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { phoneError = "Enter your phone number"; return }
         phoneError = ""
         sendingCode = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-            sendingCode = false
-            next()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
-                code = "123456"
-                codeAutoFilled = true
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { mockVerify() }
+        Task {
+            do {
+                _ = try await api.requestCode(phone: trimmed)
+                sendingCode = false
+                next()
+            } catch {
+                sendingCode = false
+                phoneError = "Couldn't send code — check your number and try again"
             }
         }
     }
 
-    private func mockVerify() {
-        guard code.count == 6 else { return }
+    private func verifyCode() {
+        guard code.count == 6 else { codeError = "Enter the 6-digit code"; return }
+        codeError = ""
         verifying = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-            verifying = false
-            next()
+        Task {
+            do {
+                _ = try await api.verifyCode(phone: phone.trimmingCharacters(in: .whitespacesAndNewlines), code: code)
+                verifying = false
+                next()
+            } catch {
+                verifying = false
+                codeError = (error as NSError).localizedDescription
+            }
         }
     }
 

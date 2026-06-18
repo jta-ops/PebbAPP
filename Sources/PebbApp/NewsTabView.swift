@@ -136,7 +136,7 @@ struct NewsTabView: View {
                     }
                 }
             }
-            .padding(.horizontal, 14)
+            \.padding(\.horizontal, 16)
             .padding(.vertical, 10)
         }
         .background(Color(hex: "0B0A12"))
@@ -150,7 +150,7 @@ struct NewsTabView: View {
             Text(title.capitalized)
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(active ? .white : color)
-                .padding(.horizontal, 14)
+                \.padding(\.horizontal, 16)
                 .padding(.vertical, 7)
                 .background(active ? AnyShapeStyle(color) : AnyShapeStyle(color.opacity(0.12)))
                 .overlay(Capsule().stroke(color.opacity(active ? 0 : 0.4), lineWidth: 1))
@@ -190,11 +190,11 @@ struct NewsTabView: View {
                                 Label(bookmarks.isBookmarked(article) ? "Remove bookmark" : "Bookmark",
                                       systemImage: bookmarks.isBookmarked(article) ? "bookmark.slash" : "bookmark")
                             }
-                            if let url = URL(string: article.source_url) {
+                            if let src = article.source_url, let url = URL(string: src) {
                                 ShareLink(item: url) { Label("Share", systemImage: "square.and.arrow.up") }
                             }
                         }
-                        .padding(.horizontal, 14)
+                        \.padding(\.horizontal, 16)
                 }
             }
             .padding(.vertical, 12)
@@ -254,7 +254,7 @@ struct BookmarksView: View {
                                             bookmarks.remove(article)
                                         } label: { Label("Remove", systemImage: "trash") }
                                     }
-                                    .padding(.horizontal, 14)
+                                    \.padding(\.horizontal, 16)
                             }
                         }
                         .padding(.vertical, 12)
@@ -351,8 +351,8 @@ struct ArticleRow: View {
 
     @ViewBuilder
     private var articleImage: some View {
-        if !article.image_url.isEmpty {
-            AsyncImage(url: URL(string: article.image_url)) { phase in
+        if !article.absoluteImageURL.isEmpty {
+            AsyncImage(url: URL(string: article.absoluteImageURL)) { phase in
                 switch phase {
                 case .empty:
                     Rectangle()

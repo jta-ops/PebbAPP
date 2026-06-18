@@ -64,13 +64,18 @@ struct NewsArticle: Codable, Identifiable, Hashable {
     let summary: String
     let category: String
     let source: String
-    let source_url: String
+    let source_url: String?
     let published_at: String
     let image_url: String
     let image_prompt: String?
     let content_html: String?
     let content_text: String?
     let sources: [String]?
+
+    var absoluteImageURL: String {
+        if image_url.hasPrefix("http") { return image_url }
+        return "https://pebb.dev\(image_url)"
+    }
 }
 
 struct NewsListResponse: Codable {

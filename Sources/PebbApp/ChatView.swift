@@ -74,7 +74,7 @@ struct ChatView: View {
                         }
                         Color.clear.frame(height: 1).id("bottom")
                     }
-                    .padding(.horizontal, 14)
+                    \.padding(\.horizontal, 16)
                     .padding(.vertical, 8)
                 }
             }
@@ -138,7 +138,7 @@ struct ChatView: View {
                 TextField("Message Pebb…", text: $input)
                     .font(.system(size: 15))
                     .foregroundStyle(Color(hex: "EDEBF7"))
-                    .padding(.horizontal, 14)
+                    \.padding(\.horizontal, 16)
                     .padding(.vertical, 10)
                     .frame(minHeight: 40)
                     .background(Color(hex: "1E1C30"))
@@ -176,7 +176,7 @@ struct ChatView: View {
             }
             .animation(.spring(response: 0.3, dampingFraction: 0.65), value: canSend)
         }
-        .padding(.horizontal, 12)
+        .padding(.horizontal, 16)
         .padding(.top, 10)
         .padding(.bottom, 28)
         .background(.ultraThinMaterial)
@@ -228,7 +228,7 @@ struct ChatView: View {
                 .font(.system(size: 13, weight: .semibold, design: .monospaced))
                 .foregroundStyle(Color(hex: "EDEBF7"))
         }
-        .padding(.horizontal, 14)
+        \.padding(\.horizontal, 16)
         .padding(.vertical, 10)
         .background(Color(hex: "1E1C30"))
         .clipShape(RoundedRectangle(cornerRadius: 16))
@@ -350,7 +350,7 @@ struct MessageRow: View {
             VStack(alignment: message.isUser ? .trailing : .leading, spacing: 4) {
                 bubbleContent
                     .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, 14)
+                    \.padding(\.horizontal, 16)
                     .padding(.vertical, 10)
                     .background(
                         message.isUser
